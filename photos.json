@@ -1,15 +1,4 @@
 {
-  "photos": [
-    {
-      "id": "10EQ2-gXvF6cQYMxYATtFCfm3TN_NF6Nz",
-      "url": "https://drive.google.com/uc?export=view&id=10EQ2-gXvF6cQYMxYATtFCfm3TN_NF6Nz",
-      "caption": "測試照片",
-      "date": "2026-03-23",
-      "tags": [
-        "測試"
-      ],
-      "fileName": "pengpeng-20260323-mn32ecpa.jpg",
-      "uploadedAt": "2026-03-23T10:50:52.897Z"
-    }
-  ]
+  "photos": [],
+  "milestones": []
 }

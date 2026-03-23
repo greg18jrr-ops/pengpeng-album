@@ -596,25 +596,56 @@
   </div>
 
   <script>
-    // ── 照片資料（從 photos.json 載入）──
-    const BABY_BIRTHDAY = '2025-11-01'; // 小澎澎生日（2025年11月）
+    // ── 照片資料（之後改成從 Google Drive API 抓）──
+    // birthday: 小澎澎的生日，用來算年齡
+    const BABY_BIRTHDAY = '2025-09-01'; // 小澎澎生日（2025年9月）
 
-    let photos = [];
-    let milestones = [];
+    const photos = [
+      // 範例資料 — 之後由 Peter skill 自動新增到 photos.json
+      {
+        url: 'https://placehold.co/400x400/87CEEB/white?text=🦸‍♂️+小澎澎',
+        caption: '小澎澎來到這個世界啦！',
+        date: '2025-09-01',
+        tags: ['出生']
+      },
+      {
+        url: 'https://placehold.co/400x400/B8D4E3/white?text=😴+睡覺覺',
+        caption: '睡得好香好甜',
+        date: '2025-10-01',
+        tags: ['日常']
+      },
+      {
+        url: 'https://placehold.co/400x400/88D8A8/white?text=🦖+恐龍',
+        caption: '第一次笑！看到恐龍玩具超開心',
+        date: '2025-11-10',
+        tags: ['里程碑']
+      },
+      {
+        url: 'https://placehold.co/400x400/D4F0E0/white?text=🎂+百日',
+        caption: '百日宴，全家福',
+        date: '2025-12-09',
+        tags: ['慶祝']
+      },
+      {
+        url: 'https://placehold.co/400x400/FFAB76/white?text=🚗+玩車車',
+        caption: '第一次抓住小汽車！',
+        date: '2026-01-15',
+        tags: ['里程碑']
+      },
+      {
+        url: 'https://placehold.co/400x400/C9A9E4/white?text=🎄+聖誕',
+        caption: '第一個聖誕節',
+        date: '2025-12-25',
+        tags: ['慶祝']
+      },
+    ];
 
-    // 從 photos.json 載入資料
-    async function loadPhotos() {
-      try {
-        const res = await fetch('photos.json?t=' + Date.now());
-        const data = await res.json();
-        photos = data.photos || [];
-        milestones = data.milestones || [];
-      } catch (e) {
-        console.warn('photos.json 載入失敗，使用空相簿', e);
-        photos = [];
-        milestones = [];
-      }
-    }
+    const milestones = [
+      { icon: '👶', title: '出生', date: '2025-09-01' },
+      { icon: '😊', title: '第一次笑', date: '2025-11-10' },
+      { icon: '🚗', title: '第一次抓玩具', date: '2026-01-15' },
+      { icon: '🎂', title: '半歲', date: '2026-03-01' },
+    ];
 
     // ── Helper ──
     function getAge(dateStr) {
@@ -782,23 +813,10 @@
     setTheme(savedTheme);
 
     // ── Init ──
-    async function init() {
-      await loadPhotos();
-      renderStats();
-      renderMilestones();
-      renderFilters();
-      renderTimeline();
-      // 沒照片時顯示歡迎訊息
-      if (photos.length === 0) {
-        document.getElementById('timeline').innerHTML = `
-          <div style="text-align:center;padding:3rem;color:var(--text-light)">
-            <div style="font-size:4rem;margin-bottom:1rem">📷</div>
-            <p>相簿還沒有照片喔！</p>
-            <p>傳照片給小飛俠 Peter 說「幫我存到相簿」就會出現在這裡</p>
-          </div>`;
-      }
-    }
-    init();
+    renderStats();
+    renderMilestones();
+    renderFilters();
+    renderTimeline();
   </script>
 </body>
 </html>
