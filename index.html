@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小澎澎相簿 🍼</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root, [data-theme="pink"] {
+      --primary: #FFB6C1;
+      --primary-light: #FFF0F3;
+      --primary-dark: #E8899E;
+      --bg: #FFF8F0;
+      --accent1: #FFDAB9;
+      --accent2: #E6E0F3;
+      --accent3: #D4F0E7;
+      --text: #5A4A5A;
+      --text-light: #8A7A8A;
+      --shadow: rgba(200, 150, 170, 0.2);
+      --gradient: linear-gradient(135deg, #FFF0F3, #E6E0F3, #D4F0E7);
+    }
+
+    [data-theme="sky"] {
+      --primary: #87CEEB;
+      --primary-light: #E8F4FD;
+      --primary-dark: #5BA3C9;
+      --bg: #F0F8FF;
+      --accent1: #B8D4E3;
+      --accent2: #D4E6F1;
+      --accent3: #E8F8E8;
+      --text: #3A4A5A;
+      --text-light: #7A8A9A;
+      --shadow: rgba(130, 170, 200, 0.2);
+      --gradient: linear-gradient(135deg, #E8F4FD, #D4E6F1, #E8F8E8);
+    }
+
+    [data-theme="lavender"] {
+      --primary: #C9A9E4;
+      --primary-light: #F3ECF9;
+      --primary-dark: #9B72C0;
+      --bg: #FAF5FF;
+      --accent1: #E0D0F0;
+      --accent2: #F0E0F5;
+      --accent3: #E8E0F8;
+      --text: #4A3A5A;
+      --text-light: #8A7A9A;
+      --shadow: rgba(170, 140, 200, 0.2);
+      --gradient: linear-gradient(135deg, #F3ECF9, #F0E0F5, #E8E0F8);
+    }
+
+    [data-theme="mint"] {
+      --primary: #88D8A8;
+      --primary-light: #E8F8EE;
+      --primary-dark: #5BBF80;
+      --bg: #F0FFF5;
+      --accent1: #B8E8C8;
+      --accent2: #D4F0E0;
+      --accent3: #E0F5D8;
+      --text: #3A5A4A;
+      --text-light: #7A9A8A;
+      --shadow: rgba(130, 200, 160, 0.2);
+      --gradient: linear-gradient(135deg, #E8F8EE, #D4F0E0, #E0F5D8);
+    }
+
+    [data-theme="peach"] {
+      --primary: #FFAB76;
+      --primary-light: #FFF3E8;
+      --primary-dark: #E08850;
+      --bg: #FFFAF0;
+      --accent1: #FFD8B0;
+      --accent2: #FFE8D0;
+      --accent3: #FFF0D0;
+      --text: #5A4A3A;
+      --text-light: #9A8A7A;
+      --shadow: rgba(200, 160, 120, 0.2);
+      --gradient: linear-gradient(135deg, #FFF3E8, #FFE8D0, #FFF0D0);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Noto Sans TC', 'Quicksand', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────── */
+    .header {
+      background: var(--gradient);
+      text-align: center;
+      padding: 3rem 1rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
+      animation: shimmer 8s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(30px, -20px); }
+    }
+
+    .header h1 {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      position: relative;
+      z-index: 1;
+    }
+
+    .header p {
+      font-size: 1rem;
+      color: var(--text-light);
+      margin-top: 0.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .baby-emoji {
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    /* ── Stats Bar ──────────────────────────── */
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      padding: 1.5rem;
+      background: white;
+      border-bottom: 2px solid var(--primary-light);
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-light);
+    }
+
+    /* ── Filter Tabs ────────────────────────── */
+    .filter-bar {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 0.5rem 1.2rem;
+      border: 2px solid var(--primary);
+      border-radius: 2rem;
+      background: white;
+      color: var(--primary-dark);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: 'Noto Sans TC', sans-serif;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* ── Timeline ───────────────────────────── */
+    .timeline {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    .month-section {
+      margin-bottom: 2rem;
+    }
+
+    .month-header {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 1rem;
+      padding-left: 0.5rem;
+    }
+
+    .month-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--primary);
+      flex-shrink: 0;
+    }
+
+    .month-label {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+
+    .month-line {
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(to right, var(--primary), transparent);
+    }
+
+    /* ── Photo Grid ─────────────────────────── */
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .photo-card {
+      background: white;
+      border-radius: 1rem;
+      overflow: hidden;
+      box-shadow: 0 4px 15px var(--shadow);
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+    }
+
+    .photo-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px var(--shadow);
+    }
+
+    .photo-card img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo-info {
+      padding: 0.8rem;
+    }
+
+    .photo-caption {
+      font-size: 0.85rem;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .photo-date {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      margin-top: 0.3rem;
+    }
+
+    .photo-age {
+      display: inline-block;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 1rem;
+      margin-top: 0.3rem;
+    }
+
+    /* ── Lightbox ───────────────────────────── */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .lightbox.active { display: flex; }
+
+    .lightbox img {
+      max-width: 90vw;
+      max-height: 80vh;
+      border-radius: 1rem;
+      object-fit: contain;
+    }
+
+    .lightbox-caption {
+      color: white;
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 1rem;
+      max-width: 80vw;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      font-size: 2rem;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s;
+    }
+
+    .lightbox-nav:hover { background: rgba(255,255,255,0.4); }
+    .lightbox-prev { left: 1rem; }
+    .lightbox-next { right: 1rem; }
+
+    /* ── Milestones ─────────────────────────── */
+    .milestones {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    .milestones h2 {
+      text-align: center;
+      font-family: 'Quicksand', sans-serif;
+      color: var(--primary-dark);
+      margin-bottom: 1.5rem;
+    }
+
+    .milestone-list {
+      display: flex;
+      gap: 1rem;
+      overflow-x: auto;
+      padding-bottom: 1rem;
+      scroll-snap-type: x mandatory;
+    }
+
+    .milestone-card {
+      min-width: 180px;
+      background: white;
+      border-radius: 1rem;
+      padding: 1.2rem;
+      text-align: center;
+      box-shadow: 0 4px 15px var(--shadow);
+      scroll-snap-align: start;
+      flex-shrink: 0;
+    }
+
+    .milestone-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .milestone-title { font-weight: 600; font-size: 0.9rem; }
+    .milestone-date { font-size: 0.75rem; color: var(--text-light); margin-top: 0.3rem; }
+
+    /* ── Upload Area ────────────────────────── */
+    .upload-hint {
+      max-width: 900px;
+      margin: 1rem auto 2rem;
+      padding: 1.5rem;
+      background: var(--gradient);
+      border-radius: 1rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .upload-hint strong { color: var(--primary-dark); }
+
+    /* ── Footer ─────────────────────────────── */
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-light);
+      font-size: 0.8rem;
+    }
+
+    /* ── Responsive ─────────────────────────── */
+    @media (max-width: 600px) {
+      .header h1 { font-size: 1.8rem; }
+      .photo-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+      .stats-bar { gap: 1rem; }
+      .lightbox-nav { width: 40px; height: 40px; font-size: 1.5rem; }
+    }
+
+    /* ── Theme Switcher ──────────────────────── */
+    .theme-switcher {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 900;
+    }
+
+    .theme-toggle {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 3px solid white;
+      box-shadow: 0 4px 15px var(--shadow);
+      cursor: pointer;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s;
+    }
+
+    .theme-toggle:hover { transform: scale(1.1); }
+
+    .theme-panel {
+      display: none;
+      position: absolute;
+      bottom: 60px;
+      right: 0;
+      background: white;
+      border-radius: 1rem;
+      padding: 1rem;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      min-width: 200px;
+    }
+
+    .theme-panel.show { display: block; }
+
+    .theme-panel h3 {
+      font-size: 0.85rem;
+      color: var(--text);
+      margin-bottom: 0.8rem;
+      text-align: center;
+    }
+
+    .theme-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .theme-option {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.5rem 0.8rem;
+      border-radius: 0.8rem;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: none;
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 0.85rem;
+      color: var(--text);
+    }
+
+    .theme-option:hover { background: #f5f5f5; }
+    .theme-option.active { border-color: var(--primary); background: var(--primary-light); }
+
+    .theme-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 2px solid rgba(0,0,0,0.1);
+    }
+
+    /* ── Animations ─────────────────────────── */
+    .photo-card {
+      animation: fadeInUp 0.6s ease both;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <span class="baby-emoji">🦸‍♂️🧸</span>
+    <h1>小澎澎相簿</h1>
+    <p>記錄每一個珍貴的成長瞬間</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-number" id="photoCount">0</div>
+      <div class="stat-label">張照片</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number" id="dayCount">0</div>
+      <div class="stat-label">天</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number" id="monthCount">0</div>
+      <div class="stat-label">個月</div>
+    </div>
+  </div>
+
+  <!-- Milestones -->
+  <div class="milestones">
+    <h2>成長里程碑 🌟</h2>
+    <div class="milestone-list" id="milestoneList">
+      <!-- 動態填入 -->
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="filter-bar" id="filterBar">
+    <button class="filter-btn active" data-filter="all">全部</button>
+  </div>
+
+  <!-- Upload Hint -->
+  <div class="upload-hint">
+    📸 傳照片給 <strong>小飛俠 Peter</strong>（Telegram），說「幫我存到相簿」就會自動上傳！
+  </div>
+
+  <!-- Timeline -->
+  <div class="timeline" id="timeline">
+    <!-- 動態填入 -->
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    Made with 💕 by 496Claw Family
+  </div>
+
+  <!-- Theme Switcher -->
+  <div class="theme-switcher">
+    <button class="theme-toggle" onclick="toggleThemePanel()" title="切換風格">🎨</button>
+    <div class="theme-panel" id="themePanel">
+      <h3>選擇風格</h3>
+      <div class="theme-options">
+        <button class="theme-option active" data-theme="sky" onclick="setTheme('sky')">
+          <span class="theme-swatch" style="background: linear-gradient(135deg, #87CEEB, #5BA3C9)"></span>
+          🦸‍♂️ 天空冒險
+        </button>
+        <button class="theme-option" data-theme="mint" onclick="setTheme('mint')">
+          <span class="theme-swatch" style="background: linear-gradient(135deg, #88D8A8, #5BBF80)"></span>
+          🦖 恐龍森林
+        </button>
+        <button class="theme-option" data-theme="peach" onclick="setTheme('peach')">
+          <span class="theme-swatch" style="background: linear-gradient(135deg, #FFAB76, #E08850)"></span>
+          🚀 太空探險
+        </button>
+        <button class="theme-option" data-theme="lavender" onclick="setTheme('lavender')">
+          <span class="theme-swatch" style="background: linear-gradient(135deg, #C9A9E4, #9B72C0)"></span>
+          🧸 夢幻玩具
+        </button>
+        <button class="theme-option" data-theme="pink" onclick="setTheme('pink')">
+          <span class="theme-swatch" style="background: linear-gradient(135deg, #FFB6C1, #E8899E)"></span>
+          🍭 甜蜜糖果
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+    <button class="lightbox-nav lightbox-prev" onclick="navigateLightbox(-1)">&#8249;</button>
+    <button class="lightbox-nav lightbox-next" onclick="navigateLightbox(1)">&#8250;</button>
+    <img id="lightboxImg" src="" alt="">
+    <div class="lightbox-caption" id="lightboxCaption"></div>
+  </div>
+
+  <script>
+    // ── 照片資料（從 photos.json 載入）──
+    const BABY_BIRTHDAY = '2025-09-01'; // 小澎澎生日（2025年9月）
+
+    let photos = [];
+    let milestones = [];
+
+    // 從 photos.json 載入資料
+    async function loadPhotos() {
+      try {
+        const res = await fetch('photos.json?t=' + Date.now());
+        const data = await res.json();
+        photos = data.photos || [];
+        milestones = data.milestones || [];
+      } catch (e) {
+        console.warn('photos.json 載入失敗，使用空相簿', e);
+        photos = [];
+        milestones = [];
+      }
+    }
+
+    // ── Helper ──
+    function getAge(dateStr) {
+      const birth = new Date(BABY_BIRTHDAY);
+      const photo = new Date(dateStr);
+      const months = (photo.getFullYear() - birth.getFullYear()) * 12 + photo.getMonth() - birth.getMonth();
+      const days = Math.floor((photo - birth) / (1000 * 60 * 60 * 24));
+      if (months < 1) return `${days} 天`;
+      return `${months} 個月`;
+    }
+
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
+      return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+    }
+
+    function getMonthKey(dateStr) {
+      const d = new Date(dateStr);
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    }
+
+    function getMonthLabel(key) {
+      const [y, m] = key.split('-');
+      const months = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+      return `${y} 年 ${months[parseInt(m)-1]}`;
+    }
+
+    // ── Render Stats ──
+    function renderStats() {
+      document.getElementById('photoCount').textContent = photos.length;
+      const birth = new Date(BABY_BIRTHDAY);
+      const now = new Date();
+      const days = Math.floor((now - birth) / (1000 * 60 * 60 * 24));
+      const months = (now.getFullYear() - birth.getFullYear()) * 12 + now.getMonth() - birth.getMonth();
+      document.getElementById('dayCount').textContent = days;
+      document.getElementById('monthCount').textContent = months;
+    }
+
+    // ── Render Milestones ──
+    function renderMilestones() {
+      const list = document.getElementById('milestoneList');
+      list.innerHTML = milestones.map(m => `
+        <div class="milestone-card">
+          <div class="milestone-icon">${m.icon}</div>
+          <div class="milestone-title">${m.title}</div>
+          <div class="milestone-date">${formatDate(m.date)}</div>
+        </div>
+      `).join('');
+    }
+
+    // ── Render Filters ──
+    function renderFilters() {
+      const allTags = [...new Set(photos.flatMap(p => p.tags))];
+      const bar = document.getElementById('filterBar');
+      bar.innerHTML = '<button class="filter-btn active" data-filter="all">全部</button>' +
+        allTags.map(t => `<button class="filter-btn" data-filter="${t}">${t}</button>`).join('');
+
+      bar.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          bar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderTimeline(btn.dataset.filter);
+        });
+      });
+    }
+
+    // ── Render Timeline ──
+    function renderTimeline(filter = 'all') {
+      const filtered = filter === 'all' ? photos : photos.filter(p => p.tags.includes(filter));
+      const grouped = {};
+      filtered.forEach(p => {
+        const key = getMonthKey(p.date);
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(p);
+      });
+
+      const timeline = document.getElementById('timeline');
+      const sortedKeys = Object.keys(grouped).sort().reverse();
+
+      timeline.innerHTML = sortedKeys.map(key => `
+        <div class="month-section">
+          <div class="month-header">
+            <div class="month-dot"></div>
+            <div class="month-label">${getMonthLabel(key)}</div>
+            <div class="month-line"></div>
+          </div>
+          <div class="photo-grid">
+            ${grouped[key].map((p, i) => `
+              <div class="photo-card" onclick="openLightbox(${photos.indexOf(p)})" style="animation-delay: ${i * 0.1}s">
+                <img src="${p.url}" alt="${p.caption}" loading="lazy">
+                <div class="photo-info">
+                  <div class="photo-caption">${p.caption}</div>
+                  <div class="photo-date">${formatDate(p.date)}</div>
+                  <span class="photo-age">${getAge(p.date)}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ── Lightbox ──
+    let currentIndex = 0;
+
+    function openLightbox(index) {
+      currentIndex = index;
+      const p = photos[index];
+      document.getElementById('lightboxImg').src = p.url;
+      document.getElementById('lightboxCaption').textContent = `${p.caption} — ${formatDate(p.date)}（${getAge(p.date)}）`;
+      document.getElementById('lightbox').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function navigateLightbox(dir) {
+      currentIndex = (currentIndex + dir + photos.length) % photos.length;
+      openLightbox(currentIndex);
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (!document.getElementById('lightbox').classList.contains('active')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') navigateLightbox(-1);
+      if (e.key === 'ArrowRight') navigateLightbox(1);
+    });
+
+    // Touch swipe
+    let touchStartX = 0;
+    document.getElementById('lightbox').addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
+    document.getElementById('lightbox').addEventListener('touchend', e => {
+      const diff = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(diff) > 50) navigateLightbox(diff > 0 ? -1 : 1);
+    });
+
+    // ── Theme Switcher ──
+    function toggleThemePanel() {
+      document.getElementById('themePanel').classList.toggle('show');
+    }
+
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('pengpeng-theme', theme);
+      // Update active state
+      document.querySelectorAll('.theme-option').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.theme === theme);
+      });
+      document.getElementById('themePanel').classList.remove('show');
+    }
+
+    // Close panel on outside click
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.theme-switcher')) {
+        document.getElementById('themePanel').classList.remove('show');
+      }
+    });
+
+    // Load saved theme
+    const savedTheme = localStorage.getItem('pengpeng-theme') || 'sky';
+    setTheme(savedTheme);
+
+    // ── Init ──
+    async function init() {
+      await loadPhotos();
+      renderStats();
+      renderMilestones();
+      renderFilters();
+      renderTimeline();
+      // 沒照片時顯示歡迎訊息
+      if (photos.length === 0) {
+        document.getElementById('timeline').innerHTML = `
+          <div style="text-align:center;padding:3rem;color:var(--text-light)">
+            <div style="font-size:4rem;margin-bottom:1rem">📷</div>
+            <p>相簿還沒有照片喔！</p>
+            <p>傳照片給小飛俠 Peter 說「幫我存到相簿」就會出現在這裡</p>
+          </div>`;
+      }
+    }
+    init();
+  </script>
+</body>
+</html>
