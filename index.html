@@ -94,6 +94,25 @@
       overflow: hidden;
     }
 
+    .header.has-banner {
+      padding: 0;
+      min-height: 300px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .header.has-banner .header-overlay {
+      background: linear-gradient(transparent 0%, rgba(0,0,0,0.5) 100%);
+      padding: 3rem 1rem 2rem;
+    }
+
+    .header.has-banner h1 { color: white; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    .header.has-banner p { color: rgba(255,255,255,0.9); }
+    .header.has-banner .baby-emoji { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+
     .header::before {
       content: '';
       position: absolute;
@@ -104,6 +123,8 @@
       background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
       animation: shimmer 8s ease-in-out infinite;
     }
+
+    .header.has-banner::before { display: none; }
 
     @keyframes shimmer {
       0%, 100% { transform: translate(0, 0); }
@@ -506,10 +527,12 @@
 <body>
 
   <!-- Header -->
-  <div class="header">
-    <span class="baby-emoji">🦸‍♂️🧸</span>
-    <h1>小澎澎相簿</h1>
-    <p>記錄每一個珍貴的成長瞬間</p>
+  <div class="header" id="headerBanner">
+    <div class="header-overlay">
+      <span class="baby-emoji">🦸‍♂️🧸</span>
+      <h1>小澎澎相簿</h1>
+      <p>記錄每一個珍貴的成長瞬間</p>
+    </div>
   </div>
 
   <!-- Stats -->
@@ -609,6 +632,12 @@
         const data = await res.json();
         photos = data.photos || [];
         milestones = data.milestones || [];
+        // 設定 banner
+        if (data.banner && data.banner.url) {
+          const header = document.getElementById('headerBanner');
+          header.classList.add('has-banner');
+          header.style.backgroundImage = `url(${data.banner.url})`;
+        }
       } catch (e) {
         console.warn('photos.json 載入失敗，使用空相簿', e);
         photos = [];
