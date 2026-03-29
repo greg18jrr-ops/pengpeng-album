@@ -268,11 +268,58 @@
       box-shadow: 0 8px 25px var(--shadow);
     }
 
-    .photo-card img {
+    .photo-card img, .photo-card video {
       width: 100%;
       aspect-ratio: 1;
       object-fit: cover;
       display: block;
+    }
+
+    /* ── Video Overlay ─────────────────────── */
+    .photo-card .video-thumb {
+      position: relative;
+    }
+
+    .photo-card .video-thumb .play-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 50px;
+      height: 50px;
+      background: rgba(0,0,0,0.55);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      transition: background 0.3s;
+    }
+
+    .photo-card:hover .play-icon {
+      background: rgba(0,0,0,0.75);
+    }
+
+    .play-icon::after {
+      content: '';
+      display: block;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 10px 0 10px 18px;
+      border-color: transparent transparent transparent white;
+      margin-left: 3px;
+    }
+
+    .photo-card .video-duration {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
     }
 
     .photo-info {
@@ -315,11 +362,17 @@
 
     .lightbox.active { display: flex; }
 
-    .lightbox img {
+    .lightbox img, .lightbox iframe {
       max-width: 90vw;
       max-height: 80vh;
       border-radius: 1rem;
       object-fit: contain;
+    }
+
+    .lightbox iframe {
+      width: 90vw;
+      height: 70vh;
+      border: none;
     }
 
     .lightbox-caption {
@@ -539,7 +592,7 @@
   <div class="stats-bar">
     <div class="stat">
       <div class="stat-number" id="photoCount">0</div>
-      <div class="stat-label">張照片</div>
+      <div class="stat-label" id="mediaLabel">張照片</div>
     </div>
     <div class="stat">
       <div class="stat-number" id="dayCount">0</div>
@@ -566,7 +619,7 @@
 
   <!-- Upload Hint -->
   <div class="upload-hint">
-    📸 傳照片給 <strong>小飛俠 Peter</strong>（Telegram），說「幫我存到相簿」就會自動上傳！
+    📸🎬 傳照片或影片給 <strong>小飛俠 Peter</strong>（Telegram），說「幫我存到相簿」就會自動上傳！
   </div>
 
   <!-- Timeline -->
@@ -615,6 +668,7 @@
     <button class="lightbox-nav lightbox-prev" onclick="navigateLightbox(-1)">&#8249;</button>
     <button class="lightbox-nav lightbox-next" onclick="navigateLightbox(1)">&#8250;</button>
     <img id="lightboxImg" src="" alt="">
+    <iframe id="lightboxVideo" src="" allow="autoplay" allowfullscreen style="display:none"></iframe>
     <div class="lightbox-caption" id="lightboxCaption"></div>
   </div>
 
@@ -687,7 +741,9 @@
         const data = await res.json();
         photos = (data.photos || []).map(p => {
           const fileId = p.id || extractFileId(p.url);
-          return { ...p, fileId, displayUrl: fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200` : p.url };
+          const type = p.type || 'image';
+          const displayUrl = fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200` : p.url;
+          return { ...p, fileId, type, displayUrl };
         });
         milestones = data.milestones || [];
         // 設定 banner
@@ -735,7 +791,10 @@
 
     // ── Render Stats ──
     function renderStats() {
+      const videoCount = photos.filter(p => p.type === 'video').length;
+      const imageCount = photos.length - videoCount;
       document.getElementById('photoCount').textContent = photos.length;
+      document.getElementById('mediaLabel').textContent = videoCount > 0 ? `張照片 / ${videoCount} 部影片` : '張照片';
       const birth = new Date(BABY_BIRTHDAY);
       const now = new Date();
       const days = Math.floor((now - birth) / (1000 * 60 * 60 * 24));
@@ -796,9 +855,17 @@
           <div class="photo-grid">
             ${grouped[key].map((p, i) => `
               <div class="photo-card" onclick="openLightbox(${photos.indexOf(p)})" style="animation-delay: ${i * 0.1}s">
-                <img data-file-id="${p.fileId || ''}" data-original-url="${p.url || ''}" src="${p.displayUrl}" alt="${p.caption}" loading="lazy">
+                ${p.type === 'video' ? `
+                  <div class="video-thumb">
+                    <img data-file-id="${p.fileId || ''}" data-original-url="${p.url || ''}" src="${p.displayUrl}" alt="${p.caption}" loading="lazy">
+                    <div class="play-icon"></div>
+                    ${p.duration ? `<span class="video-duration">${p.duration}</span>` : ''}
+                  </div>
+                ` : `
+                  <img data-file-id="${p.fileId || ''}" data-original-url="${p.url || ''}" src="${p.displayUrl}" alt="${p.caption}" loading="lazy">
+                `}
                 <div class="photo-info">
-                  <div class="photo-caption">${p.caption}</div>
+                  <div class="photo-caption">${p.type === 'video' ? '🎬 ' : ''}${p.caption}</div>
                   <div class="photo-date">${formatDate(p.date)}</div>
                   <span class="photo-age">${getAge(p.date)}</span>
                 </div>
@@ -816,11 +883,25 @@
       currentIndex = index;
       const p = photos[index];
       const lbImg = document.getElementById('lightboxImg');
-      // Lightbox 用較大尺寸
-      const lbUrl = p.fileId ? `https://drive.google.com/thumbnail?id=${p.fileId}&sz=w2000` : p.displayUrl;
-      lbImg.src = lbUrl;
-      setupImageFallback(lbImg, p.url, p.fileId);
-      document.getElementById('lightboxCaption').textContent = `${p.caption} — ${formatDate(p.date)}（${getAge(p.date)}）`;
+      const lbVideo = document.getElementById('lightboxVideo');
+
+      if (p.type === 'video' && p.fileId) {
+        // 影片：用 Google Drive preview iframe
+        lbImg.style.display = 'none';
+        lbVideo.style.display = 'block';
+        lbVideo.src = `https://drive.google.com/file/d/${p.fileId}/preview`;
+      } else {
+        // 圖片
+        lbVideo.style.display = 'none';
+        lbVideo.src = '';
+        lbImg.style.display = 'block';
+        const lbUrl = p.fileId ? `https://drive.google.com/thumbnail?id=${p.fileId}&sz=w2000` : p.displayUrl;
+        lbImg.src = lbUrl;
+        setupImageFallback(lbImg, p.url, p.fileId);
+      }
+
+      const typeIcon = p.type === 'video' ? '🎬 ' : '';
+      document.getElementById('lightboxCaption').textContent = `${typeIcon}${p.caption} — ${formatDate(p.date)}（${getAge(p.date)}）`;
       document.getElementById('lightbox').classList.add('active');
       document.body.style.overflow = 'hidden';
     }
@@ -828,6 +909,10 @@
     function closeLightbox() {
       document.getElementById('lightbox').classList.remove('active');
       document.body.style.overflow = '';
+      // 停止影片播放
+      const lbVideo = document.getElementById('lightboxVideo');
+      lbVideo.src = '';
+      lbVideo.style.display = 'none';
     }
 
     function navigateLightbox(dir) {
