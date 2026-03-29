@@ -625,18 +625,80 @@
     let photos = [];
     let milestones = [];
 
+    // ── Google Drive 圖片 URL 智慧處理 ──
+    // 從任何 Google Drive URL 格式提取 file ID
+    function extractFileId(url) {
+      if (!url) return null;
+      // 格式1: /d/{ID}
+      let m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (m) return m[1];
+      // 格式2: id={ID}
+      m = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (m) return m[1];
+      // 格式3: drive-storage token URL（沒有 file ID，直接用原始 URL）
+      if (url.includes('drive-storage')) return null;
+      return null;
+    }
+
+    // 生成多層 fallback URL（依穩定度排序）
+    function getImageUrls(url, fileId) {
+      const urls = [];
+      if (fileId) {
+        // 最穩定：Google Drive thumbnail API
+        urls.push(`https://drive.google.com/thumbnail?id=${fileId}&sz=w1200`);
+        // 備選1：lh3 直連
+        urls.push(`https://lh3.googleusercontent.com/d/${fileId}=s1200`);
+        // 備選2：原始 URL
+        if (url) urls.push(url);
+        // 備選3：Google Drive uc export
+        urls.push(`https://drive.google.com/uc?export=view&id=${fileId}`);
+      } else if (url) {
+        // drive-storage token URL：先用原始，再試 thumbnail
+        urls.push(url);
+      }
+      return urls;
+    }
+
+    // 為每張照片設定最佳 URL + onerror fallback
+    function setupImageFallback(imgEl, url, fileId) {
+      const urls = getImageUrls(url, fileId);
+      let attempt = 0;
+      imgEl.onerror = function() {
+        attempt++;
+        if (attempt < urls.length) {
+          this.src = urls[attempt];
+        } else {
+          // 所有 URL 都失敗，顯示佔位圖
+          this.onerror = null;
+          this.style.background = 'linear-gradient(135deg, var(--primary-light), var(--accent2))';
+          this.style.objectFit = 'contain';
+          this.alt = '📷 照片載入中...請稍後重試';
+        }
+      };
+      if (urls.length > 0) {
+        imgEl.src = urls[0];
+      }
+    }
+
     // 從 photos.json 載入資料
     async function loadPhotos() {
       try {
         const res = await fetch('photos.json?t=' + Date.now());
         const data = await res.json();
-        photos = data.photos || [];
+        photos = (data.photos || []).map(p => {
+          const fileId = p.id || extractFileId(p.url);
+          return { ...p, fileId, displayUrl: fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200` : p.url };
+        });
         milestones = data.milestones || [];
         // 設定 banner
-        if (data.banner && data.banner.url) {
-          const header = document.getElementById('headerBanner');
-          header.classList.add('has-banner');
-          header.style.backgroundImage = `url(${data.banner.url})`;
+        if (data.banner) {
+          const bannerId = data.banner.id || extractFileId(data.banner.url);
+          const bannerUrl = bannerId ? `https://drive.google.com/thumbnail?id=${bannerId}&sz=w2000` : data.banner.url;
+          if (bannerUrl) {
+            const header = document.getElementById('headerBanner');
+            header.classList.add('has-banner');
+            header.style.backgroundImage = `url(${bannerUrl})`;
+          }
         }
       } catch (e) {
         console.warn('photos.json 載入失敗，使用空相簿', e);
@@ -706,6 +768,7 @@
           bar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           renderTimeline(btn.dataset.filter);
+          attachFallbacks();
         });
       });
     }
@@ -733,7 +796,7 @@
           <div class="photo-grid">
             ${grouped[key].map((p, i) => `
               <div class="photo-card" onclick="openLightbox(${photos.indexOf(p)})" style="animation-delay: ${i * 0.1}s">
-                <img src="${p.url}" alt="${p.caption}" loading="lazy">
+                <img data-file-id="${p.fileId || ''}" data-original-url="${p.url || ''}" src="${p.displayUrl}" alt="${p.caption}" loading="lazy">
                 <div class="photo-info">
                   <div class="photo-caption">${p.caption}</div>
                   <div class="photo-date">${formatDate(p.date)}</div>
@@ -752,7 +815,11 @@
     function openLightbox(index) {
       currentIndex = index;
       const p = photos[index];
-      document.getElementById('lightboxImg').src = p.url;
+      const lbImg = document.getElementById('lightboxImg');
+      // Lightbox 用較大尺寸
+      const lbUrl = p.fileId ? `https://drive.google.com/thumbnail?id=${p.fileId}&sz=w2000` : p.displayUrl;
+      lbImg.src = lbUrl;
+      setupImageFallback(lbImg, p.url, p.fileId);
       document.getElementById('lightboxCaption').textContent = `${p.caption} — ${formatDate(p.date)}（${getAge(p.date)}）`;
       document.getElementById('lightbox').classList.add('active');
       document.body.style.overflow = 'hidden';
@@ -810,6 +877,17 @@
     const savedTheme = localStorage.getItem('pengpeng-theme') || 'sky';
     setTheme(savedTheme);
 
+    // ── 為所有圖片掛上 fallback ──
+    function attachFallbacks() {
+      document.querySelectorAll('.photo-card img').forEach(img => {
+        const fileId = img.dataset.fileId;
+        const originalUrl = img.dataset.originalUrl;
+        if (fileId) {
+          setupImageFallback(img, originalUrl, fileId);
+        }
+      });
+    }
+
     // ── Init ──
     async function init() {
       await loadPhotos();
@@ -817,6 +895,7 @@
       renderMilestones();
       renderFilters();
       renderTimeline();
+      attachFallbacks();
       // 沒照片時顯示歡迎訊息
       if (photos.length === 0) {
         document.getElementById('timeline').innerHTML = `
